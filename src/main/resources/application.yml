@@ -1,0 +1,56 @@
+spring:
+  profiles:
+    active: ${ACTIVE_PROFILE:dev}
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 15MB
+
+  data:
+    mongodb:
+      database: sevo11
+      uri: mongodb://localhost:27017
+
+  mail:
+    host: ${EMAIL_HOST}
+    port: ${EMAIL_PORT}
+    username: ${EMAIL_ID}
+    password: ${EMAIL_PASSWORD}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        mime:
+          charset: UTF
+        smtp:
+          writetimeout: 100000
+          connectiontimeout: 10000
+          timeout: 100000
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+max:
+  total:
+    attachment:
+      size: 5242880
+
+#logging:
+#  level:
+#    org.zalando.logbook: TRACE
+
+
+logging:
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+
+
+
+
+
+
+
