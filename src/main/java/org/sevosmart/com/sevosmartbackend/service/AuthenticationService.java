@@ -4,7 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.sevosmart.com.sevosmartbackend.dto.request.AuthenticationRequest;
 import org.sevosmart.com.sevosmartbackend.dto.request.RegisterRequest;
 import org.sevosmart.com.sevosmartbackend.dto.response.AuthenticationResponse;
+import org.sevosmart.com.sevosmartbackend.model.Buyer;
+import org.sevosmart.com.sevosmartbackend.model.Seller;
 import org.sevosmart.com.sevosmartbackend.model.User;
+import org.sevosmart.com.sevosmartbackend.repository.BuyerRepository;
+import org.sevosmart.com.sevosmartbackend.repository.SellerRepository;
 import org.sevosmart.com.sevosmartbackend.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,34 +21,76 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-    private final UserRepository repository;
+    private final UserRepository userRepository;
+    private final SellerRepository sellerRepository;
+    private final BuyerRepository buyerRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        Optional<User> existingUserOptional = repository.findByEmail(request.getEmail());
+        Optional<User> existingUserOptional = userRepository.findByEmail(request.getEmail());
         if (existingUserOptional.isPresent()) {
             return AuthenticationResponse.builder()
                     .message("Email already exists")
                     .build();
         }
 
-        var user = User.builder()
+        User user;
+        switch (request.getRole()) {
+            case USER, ADMIN:
+                user = createUser(request);
+                userRepository.save(user);
+                break;
+            case SELLER:
+                user = createSeller(request);
+                sellerRepository.save((Seller) user);
+                break;
+            case BUYER:
+                user = createBuyer(request);
+                buyerRepository.save((Buyer) user);
+                break;
+            default:
+                return AuthenticationResponse.builder()
+                        .message("Unknown role")
+                        .build();
+        }
+
+        String jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .user(user)
+                .token(jwtToken)
+                .build();
+    }
+
+    private User createUser(RegisterRequest request) {
+        return User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .build();
-        repository.save(user);
+    }
 
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .user(user)
-                .token(jwtToken)
+    private Seller createSeller(RegisterRequest request) {
+        return Seller.sellerBuilder()
+                .firstname(request.getFirstname())
+                .lastname(request.getLastname())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
                 .build();
+    }
 
+    private Buyer createBuyer(RegisterRequest request) {
+        return Buyer.buyerBuilder()
+                .firstname(request.getFirstname())
+                .lastname(request.getLastname())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
+                .build();
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -57,11 +103,9 @@ public class AuthenticationService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
-                        request.getPassword()
-                )
-        );
+                        request.getPassword()));
 
-        var user = repository.findByEmail(request.getEmail())
+        var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow();
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
@@ -70,24 +114,24 @@ public class AuthenticationService {
                 .build();
     }
 
-    public ResponseEntity<?> authCheck(String token){
+    public ResponseEntity<?> authCheck(String token) {
         System.out.println("step1");
         String userEmail = jwtService.extractUsername(token);
         System.out.println("step2");
-        if (userEmail.isEmpty()){
+        if (userEmail.isEmpty()) {
             System.out.println("step3");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("User not Sign in");
 
         }
         System.out.println("step4");
-        var user = repository.findByEmail(userEmail)
+        var user = userRepository.findByEmail(userEmail)
                 .orElseThrow();
 
         System.out.println("User : " + user);
-        if(jwtService.isTokenValid(token, user)){
+        if (jwtService.isTokenValid(token, user)) {
             return ResponseEntity.ok().build();
-        }else{
+        } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Token is expired");
         }
