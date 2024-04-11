@@ -10,6 +10,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/notification")
 @RequiredArgsConstructor
+@CrossOrigin
+
 public class NotificationController {
 
     private final GuestService guestService;

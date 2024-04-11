@@ -26,7 +26,7 @@ public class Product {
     private String description;
     private String brand;
     private String category;
-//    private String image;
+    // private String image;
 
     @DBRef
     private Seller seller;

@@ -5,6 +5,7 @@ import org.sevosmart.com.sevosmartbackend.model.Buyer;
 import org.sevosmart.com.sevosmartbackend.model.CartItems;
 import org.sevosmart.com.sevosmartbackend.model.Product;
 import org.sevosmart.com.sevosmartbackend.model.User;
+import org.sevosmart.com.sevosmartbackend.repository.BuyerRepository;
 import org.sevosmart.com.sevosmartbackend.repository.CartItemRepository;
 import org.sevosmart.com.sevosmartbackend.repository.ProductRepository;
 import org.sevosmart.com.sevosmartbackend.repository.UserRepository;
@@ -22,13 +23,18 @@ public class CartItemServiceImpl implements CartItemService {
 
     private final UserRepository userRepository;
 
+    private final BuyerRepository buyerRepository;
+
     @Override
     public String addProductToCart(String productId, String buyerId) {
         Optional<User> userOptional = userRepository.findById(buyerId);
         Product product = productRepository.findById(productId).orElse(null);
-        if (userOptional.isEmpty())  return "Buyer not found";
-        if (!(userOptional.get() instanceof Buyer buyer)) return "User is not a buyer";
-        if (product == null) return "Product not found";
+        if (userOptional.isEmpty())
+            return "Buyer not found";
+        if (!(userOptional.get() instanceof Buyer buyer))
+            return "User is not a buyer";
+        if (product == null)
+            return "Product not found";
 
         List<CartItems> cartItems = buyer.getCartItems();
         Optional<CartItems> existingCartItemOptional = cartItems.stream()
@@ -43,7 +49,7 @@ public class CartItemServiceImpl implements CartItemService {
             CartItems newCartItem = new CartItems();
             newCartItem.setProduct(product);
             newCartItem.setQuantity(1);
-            newCartItem.setBuyer(buyer);
+            newCartItem.setBuyerId(buyer.getId());
             buyer.getCartItems().add(newCartItem);
             cartItemRepository.save(newCartItem);
         }
@@ -51,7 +57,6 @@ public class CartItemServiceImpl implements CartItemService {
         userRepository.save(buyer);
         return "Product added to cart";
     }
-
 
     @Override
     public List<CartItems> cartProducts(String buyerId) {
@@ -68,14 +73,37 @@ public class CartItemServiceImpl implements CartItemService {
         return Collections.emptyList();
     }
 
-
     @Override
     public String removeProductFromCartById(String productId, String buyerId) {
-        return null;
+        Optional<CartItems> cartItemOptional = Optional
+                .ofNullable(cartItemRepository.findByProductIdAndBuyerId(productId, buyerId));
+        if (cartItemOptional.isPresent()) {
+            CartItems cartItem = cartItemOptional.get();
+            if (cartItem.getQuantity() > 1) {
+                cartItem.setQuantity(cartItem.getQuantity() - 1);
+                cartItemRepository.save(cartItem);
+                return "Product quantity reduced successfully";
+            } else {
+                deleteProductFromCartById(productId, buyerId);
+                return "Product removed successfully";
+            }
+        }
+        return "Record not found";
     }
 
     @Override
     public String deleteProductFromCartById(String productId, String buyerId) {
-        return null;
+        Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
+        if (buyerOptional.isPresent()) {
+            Buyer buyer = buyerOptional.get();
+            CartItems cartItem = cartItemRepository.findByProductIdAndBuyerId(productId, buyerId);
+            if (cartItem != null) {
+                buyer.getCartItems().remove(cartItem);
+                buyerRepository.save(buyer);
+                cartItemRepository.deleteById(cartItem.getId());
+                return "Product deleted from cart";
+            }
+        }
+        return "Record not found";
     }
 }

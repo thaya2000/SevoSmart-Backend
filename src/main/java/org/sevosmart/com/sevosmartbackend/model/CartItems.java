@@ -20,8 +20,10 @@ public class CartItems {
     @DBRef
     private Product product;
 
-    @DBRef
-    private Buyer buyer;
+    // @DBRef
+    // private Buyer buyer;
+
+    private String buyerId;
 
     private int quantity;
 }

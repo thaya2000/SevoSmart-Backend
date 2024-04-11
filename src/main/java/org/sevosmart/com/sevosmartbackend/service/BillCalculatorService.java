@@ -6,8 +6,8 @@ import org.sevosmart.com.sevosmartbackend.dto.response.BillBenefitsResponse;
 import org.sevosmart.com.sevosmartbackend.dto.response.BillCalculatorResponse;
 
 public interface BillCalculatorService {
-    public BillCalculatorResponse calculateBill(BillCalculatorRequest request);
+    BillCalculatorResponse calculateBill(BillCalculatorRequest request);
 
-    public BillBenefitsResponse calculateBillBenefits(BillBenefitsRequest request);
+    BillBenefitsResponse calculateBillBenefits(BillBenefitsRequest request);
 }
 

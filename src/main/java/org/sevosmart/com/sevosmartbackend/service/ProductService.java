@@ -7,10 +7,16 @@ import java.util.List;
 
 public interface ProductService {
     String addNewProduct(Product product, String sellerId);
+
     List<Product> getAllProduct();
+
     List<Product> getAllProductBySeller(String sellerId);
+
     String deleteProduct(String productId, String sellerId);
+
     Product getProductById(String productId, String sellerId);
+
     String updateProduct(String productId, Product product);
-    public String updatePrice(String productId, PriceUpdateRequest price);
+
+    String updatePrice(String productId, PriceUpdateRequest price);
 }

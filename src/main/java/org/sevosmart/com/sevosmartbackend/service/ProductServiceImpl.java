@@ -20,14 +20,14 @@ public class ProductServiceImpl implements ProductService{
 
     private final UserRepository userRepository;
 
+
     @Override
     public String addNewProduct(Product product, String sellerId) {
         Optional<User> userOptional = userRepository.findById(sellerId);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             System.out.println("Retrieved user type: " + user.getClass().getSimpleName());
-            if (user instanceof Seller) {
-                Seller seller = (Seller) user;
+            if (user instanceof Seller seller) {
                 product.setSeller(seller);
                 productRepository.save(product);
                 return "Product Added successfully";

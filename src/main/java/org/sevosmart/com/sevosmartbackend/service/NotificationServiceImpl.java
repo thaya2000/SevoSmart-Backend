@@ -4,7 +4,6 @@ import com.mongodb.client.gridfs.model.GridFSFile;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
 import org.sevosmart.com.sevosmartbackend.exception.EmailSendingException;
 import org.sevosmart.com.sevosmartbackend.model.Guest;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +24,7 @@ import static org.sevosmart.com.sevosmartbackend.utils.EmailUtils.getEmailMessag
 
 @Service
 @RequiredArgsConstructor
-public class NotificationServiceImpl implements NotificationService{
+public class NotificationServiceImpl implements NotificationService {
 
     private final JavaMailSender emailSender;
 
@@ -35,6 +34,7 @@ public class NotificationServiceImpl implements NotificationService{
     private final GridFsTemplate gridFsTemplate;
 
     public static final String UTF_8_ENCODING = "UTF-8";
+
     @Override
     @Async
     public void sendConsultationNotification(Guest guest) {
@@ -48,13 +48,12 @@ public class NotificationServiceImpl implements NotificationService{
             helper.setTo("thevarasathayanan@gmail.com");
             helper.setText(getEmailMessage(guest), false);
 
-
             if (guest.getAttachmentIds() != null && !guest.getAttachmentIds().isEmpty()) {
                 for (String attachmentId : guest.getAttachmentIds()) {
                     System.out.println("Processing attachmentId: " + attachmentId);
 
                     // Construct the query and get the GridFSFile
-                    Query query = new Query(Criteria.where("_id").is(new ObjectId(attachmentId)));
+                    Query query = new Query(Criteria.where("_id").is(new String(attachmentId)));
                     GridFSFile gridFSFile = gridFsTemplate.findOne(query);
 
                     if (gridFSFile != null) {
