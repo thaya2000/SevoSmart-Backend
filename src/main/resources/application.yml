@@ -53,9 +53,6 @@ logging:
     org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
 
 
-java:
-  runtime:
-    version: 21
 
 
 
