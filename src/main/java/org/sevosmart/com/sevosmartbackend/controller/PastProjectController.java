@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/admin")
-@CrossOrigin("http://localhost:5173")
+@CrossOrigin
 @RequiredArgsConstructor
 public class PastProjectController {
     @Autowired

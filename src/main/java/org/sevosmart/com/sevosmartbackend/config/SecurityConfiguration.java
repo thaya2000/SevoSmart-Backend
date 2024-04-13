@@ -1,6 +1,5 @@
 package org.sevosmart.com.sevosmartbackend.config;
 
-
 import lombok.RequiredArgsConstructor;
 import org.sevosmart.com.sevosmartbackend.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
