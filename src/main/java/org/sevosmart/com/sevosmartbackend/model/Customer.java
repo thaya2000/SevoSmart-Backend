@@ -13,13 +13,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "user")
-// @TypeAlias("BuyerData")
-public class Buyer extends User {
+// @TypeAlias("CustomerData")
+public class Customer extends User {
     @DBRef
     private List<CartItems> cartItems = new ArrayList<>();
 
-    @Builder(builderMethodName = "buyerBuilder")
-    public Buyer(String id, String firstname, String lastname, String email, String password, Role role,
+    @Builder(builderMethodName = "customerBuilder")
+    public Customer(String id, String firstname, String lastname, String email, String password, Role role,
             List<CartItems> cartItems) {
         super(id, firstname, lastname, email, password, role);
         this.cartItems = cartItems;

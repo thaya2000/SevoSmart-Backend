@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.sevosmart.com.sevosmartbackend.dto.request.AuthenticationRequest;
 import org.sevosmart.com.sevosmartbackend.dto.request.RegisterRequest;
 import org.sevosmart.com.sevosmartbackend.dto.response.AuthenticationResponse;
-import org.sevosmart.com.sevosmartbackend.model.Buyer;
+import org.sevosmart.com.sevosmartbackend.model.Admin;
+import org.sevosmart.com.sevosmartbackend.model.Customer;
 import org.sevosmart.com.sevosmartbackend.model.Seller;
 import org.sevosmart.com.sevosmartbackend.model.User;
-import org.sevosmart.com.sevosmartbackend.repository.BuyerRepository;
+import org.sevosmart.com.sevosmartbackend.repository.AdminRepository;
+import org.sevosmart.com.sevosmartbackend.repository.CustomerRepository;
 import org.sevosmart.com.sevosmartbackend.repository.SellerRepository;
 import org.sevosmart.com.sevosmartbackend.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -22,8 +24,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
     private final SellerRepository sellerRepository;
-    private final BuyerRepository buyerRepository;
+    private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -38,17 +41,21 @@ public class AuthenticationService {
 
         User user;
         switch (request.getRole()) {
-            case USER, ADMIN:
+            case USER:
                 user = createUser(request);
                 userRepository.save(user);
+                break;
+            case ADMIN:
+                user = createAdmin(request);
+                adminRepository.save((Admin) user);
                 break;
             case SELLER:
                 user = createSeller(request);
                 sellerRepository.save((Seller) user);
                 break;
-            case BUYER:
+            case CUSTOMER:
                 user = createBuyer(request);
-                buyerRepository.save((Buyer) user);
+                customerRepository.save((Customer) user);
                 break;
             default:
                 return AuthenticationResponse.builder()
@@ -83,8 +90,18 @@ public class AuthenticationService {
                 .build();
     }
 
-    private Buyer createBuyer(RegisterRequest request) {
-        return Buyer.buyerBuilder()
+    private Admin createAdmin(RegisterRequest request) {
+        return Admin.adminBuilder()
+                .firstname(request.getFirstname())
+                .lastname(request.getLastname())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
+                .build();
+    }
+
+    private Customer createBuyer(RegisterRequest request) {
+        return Customer.customerBuilder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
                 .email(request.getEmail())

@@ -17,25 +17,27 @@ public class CartController {
 
     private final CartItemService cartItemService;
 
-    @PostMapping("/addProductToCart/{productId}/{buyerId}")
-    public ResponseEntity<String> addProductToCart(@PathVariable String productId, @PathVariable String buyerId) {
-        return new ResponseEntity<>(cartItemService.addProductToCart(productId, buyerId), HttpStatus.CREATED);
+    @PostMapping("/addProductToCart/{productId}/{customerId}")
+    public ResponseEntity<String> addProductToCart(@PathVariable String productId, @PathVariable String customerId) {
+        return new ResponseEntity<>(cartItemService.addProductToCart(productId, customerId), HttpStatus.CREATED);
     }
 
-    @GetMapping("/cart_products/{buyerId}")
-    public ResponseEntity<List<CartItems>> cartProducts(@PathVariable String buyerId) {
-        return new ResponseEntity<>(cartItemService.cartProducts(buyerId), HttpStatus.OK);
+    @GetMapping("/cart_products/{customerId}")
+    public ResponseEntity<List<CartItems>> cartProducts(@PathVariable String customerId) {
+        return new ResponseEntity<>(cartItemService.cartProducts(customerId), HttpStatus.OK);
     }
 
-    @DeleteMapping("/removeProductFromCartById/{productId}/{buyerId}")
+    @DeleteMapping("/removeProductFromCartById/{productId}/{customerId}")
     public ResponseEntity<String> removeProductFromCartById(@PathVariable String productId,
-            @PathVariable String buyerId) {
-        return new ResponseEntity<>(cartItemService.removeProductFromCartById(productId, buyerId), HttpStatus.ACCEPTED);
+            @PathVariable String customerId) {
+        return new ResponseEntity<>(cartItemService.removeProductFromCartById(productId, customerId),
+                HttpStatus.ACCEPTED);
     }
 
-    @DeleteMapping("/deleteProductFromCartById/{productId}/{buyerId}")
+    @DeleteMapping("/deleteProductFromCartById/{productId}/{customerId}")
     public ResponseEntity<String> deleteProductFromCartById(@PathVariable String productId,
-            @PathVariable String buyerId) {
-        return new ResponseEntity<>(cartItemService.deleteProductFromCartById(productId, buyerId), HttpStatus.ACCEPTED);
+            @PathVariable String customerId) {
+        return new ResponseEntity<>(cartItemService.deleteProductFromCartById(productId, customerId),
+                HttpStatus.ACCEPTED);
     }
 }

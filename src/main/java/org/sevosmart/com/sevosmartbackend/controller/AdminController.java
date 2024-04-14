@@ -5,8 +5,12 @@ import org.sevosmart.com.sevosmartbackend.dto.request.PriceUpdateRequest;
 import org.sevosmart.com.sevosmartbackend.model.Product;
 import org.sevosmart.com.sevosmartbackend.service.ProductService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/admin")
@@ -14,10 +18,9 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class AdminController {
     private final ProductService productService;
-
-    @PostMapping("/addProduct/{sellerId}")
-    public ResponseEntity<String> addNewProduct(@RequestBody Product product, @PathVariable String sellerId) {
-        return new ResponseEntity<String>(productService.addNewProduct(product, sellerId), HttpStatus.CREATED);
+    @PostMapping(value = "/addProduct/{adminId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> addNewProduct(@ModelAttribute Product product, @RequestParam("productpic") MultipartFile productpic, @PathVariable String adminId) throws IOException {
+        return new ResponseEntity<String>(productService.addNewProduct(product, productpic, adminId), HttpStatus.CREATED);
     }
 
     @GetMapping("/allProduct")
@@ -25,24 +28,36 @@ public class AdminController {
         return ResponseEntity.ok(productService.getAllProduct());
     }
 
-    @GetMapping("/getAllProductBySeller/{sellerId}")
-    public ResponseEntity<?> getAllProductBySeller(@PathVariable String sellerId) {
-        return ResponseEntity.ok(productService.getAllProductBySeller(sellerId));
+    @GetMapping("/productImage/{productId}")
+    public ResponseEntity<byte[]> getProductImage(@PathVariable String productId) {
+        byte[] image = productService.getProductImage(productId);
+        if (image != null) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(image);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    @DeleteMapping("/deleteProduct/{productId}/{sellerId}")
-    public ResponseEntity<String> deleteProduct(@PathVariable String productId, @PathVariable String sellerId) {
-        return new ResponseEntity<>(productService.deleteProduct(productId, sellerId), HttpStatus.ACCEPTED);
+//    @GetMapping("/getAllProductBySeller/{sellerId}")
+//    public ResponseEntity<?> getAllProductBySeller(@PathVariable String sellerId) {
+//        return ResponseEntity.ok(productService.getAllProductBySeller(sellerId));
+//    }
+
+    @DeleteMapping("/deleteProduct/{productId}")
+    public ResponseEntity<String> deleteProduct(@PathVariable String productId) {
+        return new ResponseEntity<>(productService.deleteProduct(productId), HttpStatus.ACCEPTED);
     }
 
-    @GetMapping("/product/{productId}/{sellerId}")
-    public ResponseEntity<Product> getProductById(@PathVariable String productId, @PathVariable String sellerId) {
-        return new ResponseEntity<Product>(productService.getProductById(productId, sellerId), HttpStatus.OK);
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<Product> getProductById(@PathVariable String productId) {
+        return new ResponseEntity<Product>(productService.getProductById(productId), HttpStatus.OK);
     }
 
-    @PutMapping("/updateProduct/{id}")
-    public ResponseEntity<String> updateProduct(@PathVariable String id, @RequestBody Product product) {
-        return new ResponseEntity<String>(productService.updateProduct(id, product), HttpStatus.ACCEPTED);
+    @PutMapping(value = "/updateProduct/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> updateProduct(@ModelAttribute Product product, @RequestParam("productpic") MultipartFile productpic, @PathVariable String productId) throws IOException {
+        return new ResponseEntity<String>(productService.updateProduct(productId, productpic, product), HttpStatus.CREATED);
     }
 
     @PutMapping("/updatePrice/{id}")

@@ -5,5 +5,7 @@ import org.sevosmart.com.sevosmartbackend.model.CartItems;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface CartItemRepository extends MongoRepository<CartItems, String> {
-    CartItems findByProductIdAndBuyerId(String product_id, String buyer_id);
+    CartItems findByProductIdAndCustomerId(String product_id, String customer_id);
+
+    void deleteByProductIdAndCustomerId(String product_id, String customer_id);
 }

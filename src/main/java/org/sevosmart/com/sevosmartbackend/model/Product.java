@@ -1,17 +1,10 @@
 package org.sevosmart.com.sevosmartbackend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
 
 @Data
 @Builder
@@ -21,13 +14,16 @@ import javax.persistence.ManyToOne;
 public class Product {
     @Id
     private String id;
-    private String itemTitle;
-    private double price;
+    private String productName;
+    private Double price;
+    private Integer quantity;
     private String description;
+    private Double discount;
     private String brand;
     private String category;
-    // private String image;
+    private byte[] productImage;
 
+    @JsonIgnore
     @DBRef
-    private Seller seller;
+    private Admin admin;
 }

@@ -1,5 +1,6 @@
 package org.sevosmart.com.sevosmartbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,10 +21,11 @@ public class CartItems {
     @DBRef
     private Product product;
 
-    // @DBRef
-    // private Buyer buyer;
+    @JsonIgnore
+    @DBRef
+    private Customer customer;
 
-    private String buyerId;
+//    private String customerId;
 
     private int quantity;
 }

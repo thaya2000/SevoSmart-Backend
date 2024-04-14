@@ -2,7 +2,6 @@ package org.sevosmart.com.sevosmartbackend.model;
 
 import lombok.*;
 import org.sevosmart.com.sevosmartbackend.enums.Role;
-import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
