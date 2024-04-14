@@ -50,11 +50,12 @@ public class CartItemServiceImpl implements CartItemService {
             newCartItem.setProduct(product);
             newCartItem.setQuantity(1);
             newCartItem.setCustomer(customer);
-//            newCartItem.setCustomerId(customer.getId());
             customer.getCartItems().add(newCartItem);
             cartItemRepository.save(newCartItem);
         }
 
+        product.setQuantity(product.getQuantity() - 1);
+        productRepository.save(product);
         userRepository.save(customer);
         return "Product added to cart";
     }
@@ -78,10 +79,16 @@ public class CartItemServiceImpl implements CartItemService {
     public String removeProductFromCartById(String productId, String customerId) {
         Optional<CartItems> cartItemOptional = Optional
                 .ofNullable(cartItemRepository.findByProductIdAndCustomerId(productId, customerId));
+        Product product = productRepository.findById(productId).orElse(null);
         if (cartItemOptional.isPresent()) {
             CartItems cartItem = cartItemOptional.get();
             if (cartItem.getQuantity() > 1) {
                 cartItem.setQuantity(cartItem.getQuantity() - 1);
+                Optional.ofNullable(product)
+                        .ifPresent(p -> {
+                            p.setQuantity(p.getQuantity() + 1);
+                            productRepository.save(p);
+                        });
                 cartItemRepository.save(cartItem);
                 return "Product quantity reduced successfully";
             } else {
@@ -117,12 +124,19 @@ public class CartItemServiceImpl implements CartItemService {
     @Override
     public String deleteProductFromCartById(String productId, String customerId) {
         Optional<Customer> customerOptional = customerRepository.findById(customerId);
+        Product product = productRepository.findById(productId).orElse(null);
         if (customerOptional.isPresent()) {
             Customer customer = customerOptional.get();
             boolean isCartAvailable = customer.getCartItems().stream()
                     .anyMatch(cartItem -> cartItem.getProduct().getId().equals(productId));
             if(isCartAvailable) {
                 customer.getCartItems().removeIf(cartItem -> cartItem.getProduct().getId().equals(productId));
+                CartItems cartItems = cartItemRepository.findByProductIdAndCustomerId(productId, customerId);
+                Optional.ofNullable(product)
+                        .ifPresent(p -> {
+                            p.setQuantity(p.getQuantity() + cartItems.getQuantity());
+                            productRepository.save(p);
+                        });
                 customerRepository.save(customer);
                 cartItemRepository.deleteByProductIdAndCustomerId(productId, customerId);
                 return "Product deleted from cart";
