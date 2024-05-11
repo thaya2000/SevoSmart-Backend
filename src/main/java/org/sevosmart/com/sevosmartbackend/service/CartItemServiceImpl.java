@@ -16,12 +16,11 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class CartItemServiceImpl implements CartItemService {
+    private final UserRepository userRepository;
 
     private final CartItemRepository cartItemRepository;
 
     private final ProductRepository productRepository;
-
-    private final UserRepository userRepository;
 
     private final CustomerRepository customerRepository;
 

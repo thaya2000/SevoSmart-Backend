@@ -14,7 +14,7 @@ public interface ProductService {
 
     byte[] getProductImage(String productId);
 
-//    List<Product> getAllProductBySeller(String sellerId);
+    // List<Product> getAllProductBySeller(String sellerId);
 
     String deleteProduct(String productId);
 
