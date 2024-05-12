@@ -7,23 +7,15 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-
-import javax.persistence.ElementCollection;
-import javax.persistence.Lob;
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document
+@Document(collection = "pastProjects")
 public class PastProjects {
     @Id
-    private String id;
-    private String name;
-    @Lob
-    @ElementCollection
-    private List<byte[]> images;
-
+    private String projectId;
+    private String projectName;
+    private byte[] projectImage;
     private String description;
 }

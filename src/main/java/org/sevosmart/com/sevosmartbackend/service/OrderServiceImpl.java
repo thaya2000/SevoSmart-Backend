@@ -2,6 +2,8 @@ package org.sevosmart.com.sevosmartbackend.service;
 
 import lombok.RequiredArgsConstructor;
 import org.sevosmart.com.sevosmartbackend.dto.request.OrderDetailRequest;
+import org.sevosmart.com.sevosmartbackend.dto.response.DetailOrderResponse;
+import org.sevosmart.com.sevosmartbackend.dto.response.OrderResponse;
 import org.sevosmart.com.sevosmartbackend.enums.OrderStatus;
 import org.sevosmart.com.sevosmartbackend.model.CartItems;
 import org.sevosmart.com.sevosmartbackend.model.Customer;
@@ -13,6 +15,7 @@ import org.sevosmart.com.sevosmartbackend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,23 +66,75 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order getOrderDetails(String orderId) {
+    public DetailOrderResponse getOrderDetails(String orderId) {
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isPresent()) {
-            return orderOptional.get();
+            Order order = orderOptional.get();
+            DetailOrderResponse detailOrderResponse = new DetailOrderResponse();
+            detailOrderResponse.setOrderNumber(order.getOrderId());
+            detailOrderResponse
+                    .setOrderCustomerName(order.getCustomer().getFirstname() + " " + order.getCustomer().getLastname());
+            detailOrderResponse.setOrderDate(order.getOrderDate());
+            detailOrderResponse.setOrderStatus(order.getOrderStatus().toString());
+            detailOrderResponse.setOrderAmount(String.valueOf(order.getTotalPrice()));
+            detailOrderResponse
+                    .setOrderBillingAddress(order.getAddressLineOne() + ", " + order.getAddressLineTwo() + ", "
+                            + order.getCity() + ", " + order.getDistrict());
+
+            List<DetailOrderResponse.ProductDetail> productDetails = new ArrayList<>();
+            for (CartItems cartItem : order.getOrderItems()) {
+                DetailOrderResponse.ProductDetail productDetail = new DetailOrderResponse.ProductDetail();
+                productDetail.setProductName(cartItem.getProduct().getProductName());
+                productDetail.setProductQuantity(cartItem.getQuantity());
+                productDetail.setProductImage(cartItem.getProduct().getProductImage());
+                productDetails.add(productDetail);
+            }
+            detailOrderResponse.setProducts(productDetails);
+            return detailOrderResponse;
         } else {
             throw new RuntimeException("Order not found");
         }
     }
 
     @Override
-    public List<Order> getOrdersByCustomerId(String customerId) {
+    public List<DetailOrderResponse> getOrdersByCustomerId(String customerId) {
         Optional<User> userOptional = userRepository.findById(customerId);
         if (userOptional.isEmpty())
             throw new RuntimeException("Customer not found");
         if (!(userOptional.get() instanceof Customer customer))
             throw new RuntimeException("User is not a Customer");
-        return orderRepository.findByCustomer((Customer) userOptional.get());
+
+        List<Order> orders = orderRepository.findByCustomer(customer);
+
+        if (orders.isEmpty()) {
+            throw new RuntimeException("No orders found for this customer");
+        }
+
+        List<DetailOrderResponse> detailOrderResponses = new ArrayList<>();
+        for (Order order : orders) {
+            DetailOrderResponse detailOrderResponse = new DetailOrderResponse();
+            detailOrderResponse.setOrderNumber(order.getOrderId());
+            detailOrderResponse
+                    .setOrderCustomerName(order.getCustomer().getFirstname() + " " + order.getCustomer().getLastname());
+            detailOrderResponse.setOrderDate(order.getOrderDate());
+            detailOrderResponse.setOrderStatus(order.getOrderStatus().toString());
+            detailOrderResponse.setOrderAmount(String.valueOf(order.getTotalPrice()));
+            detailOrderResponse
+                    .setOrderBillingAddress(order.getAddressLineOne() + ", " + order.getAddressLineTwo() + ", "
+                            + order.getCity() + ", " + order.getDistrict());
+
+            List<DetailOrderResponse.ProductDetail> productDetails = new ArrayList<>();
+            for (CartItems cartItem : order.getOrderItems()) {
+                DetailOrderResponse.ProductDetail productDetail = new DetailOrderResponse.ProductDetail();
+                productDetail.setProductName(cartItem.getProduct().getProductName());
+                productDetail.setProductQuantity(cartItem.getQuantity());
+                productDetail.setProductImage(cartItem.getProduct().getProductImage());
+                productDetails.add(productDetail);
+            }
+            detailOrderResponse.setProducts(productDetails);
+            detailOrderResponses.add(detailOrderResponse);
+        }
+        return detailOrderResponses;
     }
 
     @Override
@@ -115,12 +170,43 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrdersByStatus(String status) {
-        return orderRepository.findByOrderStatus(OrderStatus.valueOf(status));
+    public List<OrderResponse> getOrdersByStatus(String status) {
+        List<OrderResponse> orderResponses = new ArrayList<>();
+        List<Order> orders = orderRepository.findByOrderStatus(OrderStatus.valueOf(status));
+
+        for (Order order : orders) {
+            OrderResponse orderResponse = new OrderResponse();
+            orderResponse.setOrderNumber(order.getOrderId());
+            orderResponse
+                    .setOrderCustomerName(order.getCustomer().getFirstname() + " " + order.getCustomer().getLastname());
+            orderResponse.setOrderDate(order.getOrderDate());
+            orderResponse.setOrderStatus(order.getOrderStatus().toString());
+            orderResponse.setOrderAmount(String.valueOf(order.getTotalPrice()));
+            orderResponse.setOrderBillingAddress(order.getAddressLineOne() + ", " + order.getAddressLineTwo() + ", "
+                    + order.getCity() + ", " + order.getDistrict());
+            orderResponses.add(orderResponse);
+        }
+        return orderResponses;
     }
 
     @Override
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+    public List<OrderResponse> getAllOrders() {
+        List<OrderResponse> orderResponses = new ArrayList<>();
+        List<Order> orders = orderRepository.findAll();
+
+        for (Order order : orders) {
+            OrderResponse orderResponse = new OrderResponse();
+            orderResponse.setOrderNumber(order.getOrderId());
+            orderResponse
+                    .setOrderCustomerName(order.getCustomer().getFirstname() + " " + order.getCustomer().getLastname());
+            orderResponse.setOrderDate(order.getOrderDate());
+            orderResponse.setOrderStatus(order.getOrderStatus().toString());
+            orderResponse.setOrderAmount(String.valueOf(order.getTotalPrice()));
+            orderResponse.setOrderBillingAddress(order.getAddressLineOne() + ", " + order.getAddressLineTwo() + ", "
+                    + order.getCity() + ", " + order.getDistrict());
+            orderResponses.add(orderResponse);
+        }
+
+        return orderResponses;
     }
 }

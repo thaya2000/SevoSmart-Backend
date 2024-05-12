@@ -3,6 +3,8 @@ package org.sevosmart.com.sevosmartbackend.controller;
 import lombok.RequiredArgsConstructor;
 
 import org.sevosmart.com.sevosmartbackend.dto.request.OrderDetailRequest;
+import org.sevosmart.com.sevosmartbackend.dto.response.DetailOrderResponse;
+import org.sevosmart.com.sevosmartbackend.dto.response.OrderResponse;
 import org.sevosmart.com.sevosmartbackend.model.Order;
 import org.sevosmart.com.sevosmartbackend.service.OrderService;
 import org.springframework.http.HttpStatus;
@@ -25,8 +27,12 @@ public class OrderController {
     }
 
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<Order> getOrder(@PathVariable String orderId) {
-        return new ResponseEntity<>(orderService.getOrderDetails(orderId), HttpStatus.OK);
+    public ResponseEntity<?> getOrder(@PathVariable String orderId) {
+        try {
+            return new ResponseEntity<>(orderService.getOrderDetails(orderId), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("/ordersByCustomer/{customerId}")
@@ -62,9 +68,9 @@ public class OrderController {
     }
 
     @GetMapping("/ordersByStatus/{status}")
-    public ResponseEntity<List<Order>> getOrdersByStatus(@PathVariable String status) {
+    public ResponseEntity<List<OrderResponse>> getOrdersByStatus(@PathVariable String status) {
         try {
-            List<Order> orders = orderService.getOrdersByStatus(status);
+            List<OrderResponse> orders = orderService.getOrdersByStatus(status);
             return new ResponseEntity<>(orders, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -72,8 +78,8 @@ public class OrderController {
     }
 
     @GetMapping("/allOrders")
-    public ResponseEntity<List<Order>> getAllOrders() {
-        List<Order> orders = orderService.getAllOrders();
+    public ResponseEntity<List<OrderResponse>> getAllOrders() {
+        List<OrderResponse> orders = orderService.getAllOrders();
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 }

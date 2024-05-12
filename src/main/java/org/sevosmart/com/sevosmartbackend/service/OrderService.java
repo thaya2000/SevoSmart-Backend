@@ -3,12 +3,14 @@ package org.sevosmart.com.sevosmartbackend.service;
 import java.util.List;
 
 import org.sevosmart.com.sevosmartbackend.dto.request.OrderDetailRequest;
+import org.sevosmart.com.sevosmartbackend.dto.response.DetailOrderResponse;
+import org.sevosmart.com.sevosmartbackend.dto.response.OrderResponse;
 import org.sevosmart.com.sevosmartbackend.model.Order;
 
 public interface OrderService {
     String placeOrder(String customerId, OrderDetailRequest orderDetailRequest);
 
-    Order getOrderDetails(String orderId);
+    DetailOrderResponse getOrderDetails(String orderId);
 
     List<Order> getOrdersToDeliver();
 
@@ -16,11 +18,11 @@ public interface OrderService {
 
     String deliverOrder(String orderId);
 
-    List<Order> getOrdersByCustomerId(String customerId);
+    List<DetailOrderResponse> getOrdersByCustomerId(String customerId);
 
-    List<Order> getOrdersByStatus(String status);
+    List<OrderResponse> getOrdersByStatus(String status);
 
-    List<Order> getAllOrders();
+    List<OrderResponse> getAllOrders();
 
     // String updateOrderStatus(String orderId, String status);
 
