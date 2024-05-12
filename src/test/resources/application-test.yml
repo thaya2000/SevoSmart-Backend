@@ -1,0 +1,9 @@
+# Server
+SERVER_PORT: 8080
+ACTIVE_PROFILE: test
+
+# Email Config
+EMAIL_HOST: smtp.gmail.com
+EMAIL_PORT: 587
+EMAIL_ID: yarlnetgof@gmail.com
+EMAIL_PASSWORD: vftk ujoj xrib bzne
