@@ -12,12 +12,12 @@ import org.sevosmart.com.sevosmartbackend.dto.response.AuthenticationResponse;
 import org.sevosmart.com.sevosmartbackend.enums.Role;
 import org.sevosmart.com.sevosmartbackend.model.Customer;
 import org.sevosmart.com.sevosmartbackend.model.User;
-import org.sevosmart.com.sevosmartbackend.repository.AdminRepository;
+// import org.sevosmart.com.sevosmartbackend.repository.AdminRepository;
 import org.sevosmart.com.sevosmartbackend.repository.CustomerRepository;
 import org.sevosmart.com.sevosmartbackend.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+// import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -61,7 +61,8 @@ class AuthenticationServiceTest {
 
     @Test
     void register_NewUser_ReturnsSuccessfulRegistration() {
-        RegisterRequest request = new RegisterRequest("John", "Doe", "newuser@example.com", "password123", Role.CUSTOMER);
+        RegisterRequest request = new RegisterRequest("John", "Doe", "newuser@example.com", "password123",
+                Role.CUSTOMER);
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
         when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(jwtService.generateToken(any(User.class))).thenReturn("token123");
@@ -78,12 +79,11 @@ class AuthenticationServiceTest {
         assertEquals("Email is required", response.getMessage());
     }
 
-
     @Test
     void authCheck_InvalidToken_ReturnsUnauthorized() {
         when(jwtService.extractUsername("invalidToken")).thenReturn("");
         ResponseEntity<?> response = authenticationService.authCheck("invalidToken");
-        assertEquals(401, response.getStatusCodeValue());
+        assertEquals(401, response.getStatusCode().value());
         assertEquals("User not Sign in", response.getBody());
     }
 
@@ -96,7 +96,7 @@ class AuthenticationServiceTest {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(jwtService.isTokenValid(token, user)).thenReturn(true);
         ResponseEntity<?> response = authenticationService.authCheck(token);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertNull(response.getBody());
     }
 
