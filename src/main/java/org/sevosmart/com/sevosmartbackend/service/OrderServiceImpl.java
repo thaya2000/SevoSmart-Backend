@@ -178,7 +178,7 @@ public class OrderServiceImpl implements OrderService {
             OrderResponse orderResponse = new OrderResponse();
             orderResponse.setOrderNumber(order.getOrderId());
             orderResponse
-                    .setOrderCustomerName(order.getCustomer().getFirstname() + " " + order.getCustomer().getLastname());
+                    .setCustomerName(order.getCustomer().getFirstname() + " " + order.getCustomer().getLastname());
             orderResponse.setOrderDate(order.getOrderDate());
             orderResponse.setOrderStatus(order.getOrderStatus().toString());
             orderResponse.setOrderAmount(String.valueOf(order.getTotalPrice()));
@@ -198,8 +198,9 @@ public class OrderServiceImpl implements OrderService {
             OrderResponse orderResponse = new OrderResponse();
             orderResponse.setOrderNumber(order.getOrderId());
             orderResponse
-                    .setOrderCustomerName(order.getCustomer().getFirstname() + " " + order.getCustomer().getLastname());
+                    .setCustomerName(order.getCustomer().getFirstname() + " " + order.getCustomer().getLastname());
             orderResponse.setOrderDate(order.getOrderDate());
+            orderResponse.setCustomerPhoneNo(order.getPhoneNo());
             orderResponse.setOrderStatus(order.getOrderStatus().toString());
             orderResponse.setOrderAmount(String.valueOf(order.getTotalPrice()));
             orderResponse.setOrderBillingAddress(order.getAddressLineOne() + ", " + order.getAddressLineTwo() + ", "

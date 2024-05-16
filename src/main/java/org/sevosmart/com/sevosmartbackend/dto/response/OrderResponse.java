@@ -13,8 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderResponse {
     private String orderNumber;
-    private String orderCustomerName;
+    private String customerName;
     private LocalDate orderDate;
+    private String customerPhoneNo;
     private String orderStatus;
     private String orderAmount;
     private String orderBillingAddress;
