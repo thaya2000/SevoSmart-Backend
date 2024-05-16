@@ -6,10 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-// import org.sevosmart.com.sevosmartbackend.dto.request.AuthenticationRequest;
-// import org.sevosmart.com.sevosmartbackend.dto.request.RegisterRequest;
 import org.sevosmart.com.sevosmartbackend.dto.response.AuthenticationResponse;
-// import org.sevosmart.com.sevosmartbackend.enums.Role;
 import org.sevosmart.com.sevosmartbackend.model.User;
 import org.sevosmart.com.sevosmartbackend.service.AuthenticationService;
 import org.springframework.http.MediaType;
@@ -24,15 +21,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationControllerTest {
-
     @Mock
     private AuthenticationService authenticationService;
-
     @InjectMocks
     private AuthenticationController authenticationController;
-
     private MockMvc mockMvc;
-
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(authenticationController).build();

@@ -1,6 +1,7 @@
 package org.sevosmart.com.sevosmartbackend.service;
 
 import org.sevosmart.com.sevosmartbackend.model.PastProjects;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -9,9 +10,9 @@ public interface PastProjectService {
 
     PastProjects getPastProjectById(String id);
 
-    PastProjects savePastProject(PastProjects pastProjects);
+    String savePastProject(MultipartFile file, PastProjects pastProjects);
 
-    PastProjects updatePastProject(String id, PastProjects pastProjects);
+    String updatePastProject(String projectId, MultipartFile file, PastProjects updatedPastProjects);
 
-    void deletePastProject(String id);
+    String deletePastProject(String id);
 }

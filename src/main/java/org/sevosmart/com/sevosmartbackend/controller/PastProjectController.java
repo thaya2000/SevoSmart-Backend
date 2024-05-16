@@ -1,17 +1,13 @@
 package org.sevosmart.com.sevosmartbackend.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.sevosmart.com.sevosmartbackend.exception.ProjectNotFoundException;
 import org.sevosmart.com.sevosmartbackend.model.PastProjects;
-import org.sevosmart.com.sevosmartbackend.repository.PastProjectRepository;
 import org.sevosmart.com.sevosmartbackend.service.PastProjectService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -27,17 +23,27 @@ public class PastProjectController {
         return pastProjectService.getAllPastProjects();
     }
 
-    @GetMapping("/past-projects/{id}")
+    @GetMapping("/past-project/{id}")
     public PastProjects getPastProjectById(@PathVariable String id) {
         return pastProjectService.getPastProjectById(id);
     }
 
-    // @PostMapping(value = "/past-projects", consumes =
-    // MediaType.MULTIPART_FORM_DATA_VALUE)
-    // public PastProjects savePastProject(@RequestPart("project") PastProjects
-    // pastProjects,
-    // @RequestPart("file") MultipartFile file) throws IOException {
-    // return pastProjectService.savePastProject(file, pastProjects);
-    // }
+    @PostMapping(value = "/past-project", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String savePastProject(@ModelAttribute PastProjects pastProjects,
+            @RequestPart("Image") MultipartFile Image) throws IOException {
+        return pastProjectService.savePastProject(Image, pastProjects);
+    }
+
+    @PutMapping(value = "/past-project/{projectId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String updatePastProject(@PathVariable("projectId") String projectId,
+                                    @ModelAttribute PastProjects updatedPastProjects,
+                                    @RequestPart("Image") MultipartFile Image) throws IOException {
+        return pastProjectService.updatePastProject(projectId, Image, updatedPastProjects);
+    }
+
+    @DeleteMapping("/past-project/{projectId}")
+    public String deletePastProject(@PathVariable("projectId") String projectId) {
+        return pastProjectService.deletePastProject(projectId);
+    }
 
 }

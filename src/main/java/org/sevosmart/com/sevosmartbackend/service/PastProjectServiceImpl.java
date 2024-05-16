@@ -3,8 +3,12 @@ package org.sevosmart.com.sevosmartbackend.service;
 import lombok.RequiredArgsConstructor;
 import org.sevosmart.com.sevosmartbackend.model.PastProjects;
 import org.sevosmart.com.sevosmartbackend.repository.PastProjectRepository;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,24 +27,46 @@ public class PastProjectServiceImpl implements PastProjectService {
     }
 
     @Override
-    public PastProjects savePastProject(PastProjects pastProjects) {
-        return pastProjectRepository.save(pastProjects);
-    }
-
-    @Override
-    public PastProjects updatePastProject(String id, PastProjects pastProjects) {
-        PastProjects existingProject = pastProjectRepository.findById(id).orElse(null);
-        if (existingProject != null) {
-            existingProject.setProjectName(pastProjects.getProjectName());
-            existingProject.setDescription(pastProjects.getDescription());
-            existingProject.setProjectImage(pastProjects.getProjectImage());
-            return pastProjectRepository.save(existingProject);
+    public String savePastProject(MultipartFile file, PastProjects pastProjects) {
+        try {
+            pastProjects.setProjectImage(file.getBytes());
+            pastProjectRepository.save(pastProjects);
+            return "Project saved successfully";
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }
 
     @Override
-    public void deletePastProject(String id) {
-        pastProjectRepository.deleteById(id);
+    public String updatePastProject(String projectId, MultipartFile file, PastProjects updatedPastProjects) {
+        try {
+            Optional<PastProjects> existingProjectOpt = pastProjectRepository.findById(projectId);
+            if (existingProjectOpt.isPresent()) {
+                PastProjects existingProject = existingProjectOpt.get();
+                existingProject.setProjectName(updatedPastProjects.getProjectName());
+                existingProject.setDescription(updatedPastProjects.getDescription());
+                if (file != null) {
+                    existingProject.setProjectImage(file.getBytes());
+                }
+                pastProjectRepository.save(existingProject);
+                return "Project updated successfully";
+            } else {
+                return "Project not found";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public String deletePastProject(String id) {
+        try {
+            pastProjectRepository.deleteById(id);
+            return "Delete successful";
+        } catch (EmptyResultDataAccessException e) {
+            return "Project not found";
+        }
     }
 }
