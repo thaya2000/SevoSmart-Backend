@@ -7,16 +7,16 @@ spring:
       max-file-size: 5MB
       max-request-size: 15MB
 
+  # data:
+  #    mongodb:
+  #      database: sevo11
+  #      uri: mongodb://localhost:27017
+
+
   data:
-     mongodb:
-       database: sevo11
-       uri: mongodb://localhost:27017
-
-
-#  data:
-#    mongodb:
-#      database: sevo11
-#      uri: mongodb+srv://dbUser:8GG-w.b$rzuwp$m@cluster0.qkr6wbr.mongodb.net/
+    mongodb:
+      database: sevo11
+      uri: mongodb+srv://dbUser:8GG-w.b$rzuwp$m@cluster0.qkr6wbr.mongodb.net/
 
   mail:
     host: ${EMAIL_HOST}
