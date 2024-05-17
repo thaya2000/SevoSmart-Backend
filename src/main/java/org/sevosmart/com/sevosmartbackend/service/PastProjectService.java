@@ -10,9 +10,9 @@ public interface PastProjectService {
 
     PastProjects getPastProjectById(String id);
 
-    String savePastProject(MultipartFile file, PastProjects pastProjects);
+    String savePastProject(List<MultipartFile> file, PastProjects pastProjects);
 
-    String updatePastProject(String projectId, MultipartFile file, PastProjects updatedPastProjects);
+    String updatePastProject(String projectId, List<MultipartFile> file, PastProjects updatedPastProjects);
 
     String deletePastProject(String id);
 }

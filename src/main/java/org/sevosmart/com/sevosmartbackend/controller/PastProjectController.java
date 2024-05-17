@@ -30,14 +30,14 @@ public class PastProjectController {
 
     @PostMapping(value = "/past-project", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String savePastProject(@ModelAttribute PastProjects pastProjects,
-            @RequestPart("Image") MultipartFile Image) throws IOException {
+            @RequestPart("Image") List<MultipartFile> Image) throws IOException {
         return pastProjectService.savePastProject(Image, pastProjects);
     }
 
     @PutMapping(value = "/past-project/{projectId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String updatePastProject(@PathVariable("projectId") String projectId,
-                                    @ModelAttribute PastProjects updatedPastProjects,
-                                    @RequestPart("Image") MultipartFile Image) throws IOException {
+            @ModelAttribute PastProjects updatedPastProjects,
+            @RequestPart("Image") List<MultipartFile> Image) throws IOException {
         return pastProjectService.updatePastProject(projectId, Image, updatedPastProjects);
     }
 

@@ -7,6 +7,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,19 +28,23 @@ public class PastProjectServiceImpl implements PastProjectService {
     }
 
     @Override
-    public String savePastProject(MultipartFile file, PastProjects pastProjects) {
+    public String savePastProject(List<MultipartFile> file, PastProjects pastProjects) {
         try {
-            pastProjects.setProjectImage(file.getBytes());
+            List<byte[]> images = new ArrayList<>();
+            for (MultipartFile multipartFile : file) {
+                images.add(multipartFile.getBytes());
+            }
+            pastProjects.setProjectImages(images);
             pastProjectRepository.save(pastProjects);
             return "Project saved successfully";
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return "Failed to save project";
     }
 
     @Override
-    public String updatePastProject(String projectId, MultipartFile file, PastProjects updatedPastProjects) {
+    public String updatePastProject(String projectId, List<MultipartFile> file, PastProjects updatedPastProjects) {
         try {
             Optional<PastProjects> existingProjectOpt = pastProjectRepository.findById(projectId);
             if (existingProjectOpt.isPresent()) {
@@ -47,7 +52,11 @@ public class PastProjectServiceImpl implements PastProjectService {
                 existingProject.setProjectName(updatedPastProjects.getProjectName());
                 existingProject.setDescription(updatedPastProjects.getDescription());
                 if (file != null) {
-                    existingProject.setProjectImage(file.getBytes());
+                    List<byte[]> images = new ArrayList<>();
+                    for (MultipartFile multipartFile : file) {
+                        images.add(multipartFile.getBytes());
+                    }
+                    existingProject.setProjectImages(images);
                 }
                 pastProjectRepository.save(existingProject);
                 return "Project updated successfully";
@@ -57,7 +66,7 @@ public class PastProjectServiceImpl implements PastProjectService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return "Failed to update project";
     }
 
     @Override
