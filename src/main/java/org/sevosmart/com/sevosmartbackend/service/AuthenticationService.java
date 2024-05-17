@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.sevosmart.com.sevosmartbackend.dto.request.AuthenticationRequest;
 import org.sevosmart.com.sevosmartbackend.dto.request.RegisterRequest;
 import org.sevosmart.com.sevosmartbackend.dto.response.AuthenticationResponse;
+import org.sevosmart.com.sevosmartbackend.enums.Role;
 import org.sevosmart.com.sevosmartbackend.model.Admin;
 import org.sevosmart.com.sevosmartbackend.model.Customer;
 import org.sevosmart.com.sevosmartbackend.model.User;
@@ -16,6 +17,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -47,7 +50,7 @@ public class AuthenticationService {
                 adminRepository.save((Admin) user);
                 break;
             case CUSTOMER:
-                user = createBuyer(request);
+                user = createCustomer(request);
                 customerRepository.save((Customer) user);
                 break;
             default:
@@ -83,7 +86,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    private Customer createBuyer(RegisterRequest request) {
+    private Customer createCustomer(RegisterRequest request) {
         return Customer.customerBuilder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
@@ -131,4 +134,43 @@ public class AuthenticationService {
                     .body("Token is expired");
         }
     }
+
+    public Optional<User> getUserById(String id) {
+        try {
+            return userRepository.findById(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while fetching the user with id: " + id, e);
+        }
+    }
+
+    public User updateUser(String id, User userUpdates) {
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+            user.setFirstname(userUpdates.getFirstname());
+            user.setLastname(userUpdates.getLastname());
+            user.setEmail(userUpdates.getEmail());
+            return userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while updating the user with id: " + id, e);
+        }
+    }
+
+    public String deleteUser(String id) {
+        try {
+            userRepository.deleteById(id);
+            return "User deleted successfully";
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while deleting the user with id: " + id, e);
+        }
+    }
+
+    public List<User> getAllUsers() {
+        try {
+            return userRepository.findByRole(Role.CUSTOMER);
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while fetching all users", e);
+        }
+    }
+
 }

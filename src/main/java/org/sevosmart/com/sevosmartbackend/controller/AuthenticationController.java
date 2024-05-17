@@ -4,9 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.sevosmart.com.sevosmartbackend.dto.request.AuthenticationRequest;
 import org.sevosmart.com.sevosmartbackend.dto.request.RegisterRequest;
 import org.sevosmart.com.sevosmartbackend.dto.response.AuthenticationResponse;
+import org.sevosmart.com.sevosmartbackend.model.User;
 import org.sevosmart.com.sevosmartbackend.service.AuthenticationService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @CrossOrigin
@@ -17,14 +21,13 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(
-            @RequestBody RegisterRequest request
-    ) {
+            @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authenticationService.register(request));
     }
+
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> authenticate(
-            @RequestBody AuthenticationRequest request
-    ) {
+            @RequestBody AuthenticationRequest request) {
         return ResponseEntity.ok(authenticationService.authenticate(request));
     }
 
@@ -32,5 +35,46 @@ public class AuthenticationController {
     public ResponseEntity<?> authCheck(@RequestHeader("Authorization") String authorizationHeader) {
         System.out.println("Authorization Header: " + authorizationHeader);
         return authenticationService.authCheck(authorizationHeader);
+    }
+
+    @GetMapping("/users/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable String id) {
+        try {
+            User user = authenticationService.getUserById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody User userUpdates) {
+        try {
+            User updatedUser = authenticationService.updateUser(id, userUpdates);
+            return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable String id) {
+        try {
+            String message = authenticationService.deleteUser(id);
+            return ResponseEntity.ok(message);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers() {
+        try {
+            List<User> users = authenticationService.getAllUsers();
+            return ResponseEntity.ok(users);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 }

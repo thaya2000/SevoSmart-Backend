@@ -14,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 @Data
 @Builder
@@ -27,7 +26,9 @@ public class User implements UserDetails {
     private String firstname;
     private String lastname;
     private String email;
+    @JsonIgnore
     private String password;
+
     private Role role;
 
     @JsonIgnore
@@ -71,6 +72,4 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
-
 }
