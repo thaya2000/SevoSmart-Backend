@@ -3,8 +3,11 @@ package org.sevosmart.com.sevosmartbackend.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Date;
 
 @Data
 @Builder
@@ -26,4 +29,7 @@ public class Product {
     @JsonIgnore
     @DBRef
     private Admin admin;
+
+    @LastModifiedDate
+    private Date modifiedTime;
 }

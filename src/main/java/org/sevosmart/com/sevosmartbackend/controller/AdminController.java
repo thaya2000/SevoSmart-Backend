@@ -19,8 +19,8 @@ import java.io.IOException;
 public class AdminController {
     private final ProductService productService;
     @PostMapping(value = "/addProduct/{adminId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> addNewProduct(@ModelAttribute Product product, @RequestParam("productpic") MultipartFile productpic, @PathVariable String adminId) throws IOException {
-        return new ResponseEntity<String>(productService.addNewProduct(product, productpic, adminId), HttpStatus.CREATED);
+    public ResponseEntity<?> addNewProduct(@ModelAttribute Product product, @RequestParam("productpic") MultipartFile productpic, @PathVariable String adminId) throws IOException {
+        return new ResponseEntity<>(productService.addNewProduct(product, productpic, adminId), HttpStatus.CREATED);
     }
 
     @GetMapping("/allProduct")
@@ -40,24 +40,19 @@ public class AdminController {
         }
     }
 
-//    @GetMapping("/getAllProductBySeller/{sellerId}")
-//    public ResponseEntity<?> getAllProductBySeller(@PathVariable String sellerId) {
-//        return ResponseEntity.ok(productService.getAllProductBySeller(sellerId));
-//    }
-
     @DeleteMapping("/deleteProduct/{productId}")
     public ResponseEntity<String> deleteProduct(@PathVariable String productId) {
         return new ResponseEntity<>(productService.deleteProduct(productId), HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/product/{productId}")
-    public ResponseEntity<Product> getProductById(@PathVariable String productId) {
-        return new ResponseEntity<Product>(productService.getProductById(productId), HttpStatus.OK);
+    public ResponseEntity<?> getProductById(@PathVariable String productId) {
+        return new ResponseEntity<>(productService.getProductById(productId), HttpStatus.OK);
     }
 
     @PutMapping(value = "/updateProduct/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> updateProduct(@ModelAttribute Product product, @RequestParam("productpic") MultipartFile productpic, @PathVariable String productId) throws IOException {
-        return new ResponseEntity<String>(productService.updateProduct(productId, productpic, product), HttpStatus.CREATED);
+    public ResponseEntity<?> updateProduct(@ModelAttribute Product product, @RequestParam("productpic") MultipartFile productpic, @PathVariable String productId) throws IOException {
+        return new ResponseEntity<>(productService.updateProduct(productId, productpic, product), HttpStatus.CREATED);
     }
 
     @PutMapping("/updatePrice/{id}")

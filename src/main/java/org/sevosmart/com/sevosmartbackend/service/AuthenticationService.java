@@ -17,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -117,21 +118,66 @@ public class AuthenticationService {
                 .build();
     }
 
-    public ResponseEntity<?> authCheck(String token) {
-        String userEmail = jwtService.extractUsername(token);
-        if (userEmail.isEmpty()) {
+    public ResponseEntity<?> authCheck(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("User not Sign in");
-
+                    .body("Authorization header is missing or does not start with Bearer");
         }
-        var user = userRepository.findByEmail(userEmail)
-                .orElseThrow();
 
-        if (jwtService.isTokenValid(token, user)) {
-            return ResponseEntity.ok().build();
-        } else {
+        String token = authorizationHeader.substring(7); // Remove "Bearer " prefix
+        try {
+            String userEmail = jwtService.extractUsername(token);
+            if (userEmail == null || userEmail.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not signed in");
+            }
+
+            var user = userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+            if (jwtService.isTokenValid(token, user)) {
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Token is expired or invalid");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred processing your request");
+        }
+    }
+
+    public ResponseEntity<?> adminCheck(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Token is expired");
+                    .body("Authorization header is missing or does not start with Bearer");
+        }
+
+        String token = authorizationHeader.substring(7); // Remove "Bearer " prefix
+        try {
+            String userEmail = jwtService.extractUsername(token);
+            if (userEmail == null || userEmail.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not signed in");
+            }
+
+            var user = userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+            if (user.getRole() != Role.ADMIN) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Access denied: User does not have admin privileges");
+            }
+
+            if (jwtService.isTokenValid(token, user)) {
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Token is expired or invalid");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred processing your request");
         }
     }
 

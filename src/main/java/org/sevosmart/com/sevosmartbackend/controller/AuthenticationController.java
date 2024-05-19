@@ -37,6 +37,12 @@ public class AuthenticationController {
         return authenticationService.authCheck(authorizationHeader);
     }
 
+    @GetMapping("/admin-check")
+    public ResponseEntity<?> adminCheck(@RequestHeader("Authorization") String authorizationHeader) {
+        System.out.println("Authorization Header: " + authorizationHeader);
+        return authenticationService.adminCheck(authorizationHeader);
+    }
+
     @GetMapping("/users/{id}")
     public ResponseEntity<?> getUserById(@PathVariable String id) {
         try {

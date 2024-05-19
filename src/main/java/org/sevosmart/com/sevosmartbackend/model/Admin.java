@@ -1,5 +1,6 @@
 package org.sevosmart.com.sevosmartbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
@@ -18,8 +19,9 @@ import java.util.List;
 @Document(collection = "user")
 // @TypeAlias("SellerData")
 public class Admin extends User {
-    @JsonIgnore
     @DBRef
+    @JsonIgnore
+    @JsonBackReference
     private List<Product> products = new ArrayList<>();
 
     @Builder(builderMethodName = "adminBuilder")
