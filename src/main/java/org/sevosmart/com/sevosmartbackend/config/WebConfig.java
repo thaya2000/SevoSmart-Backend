@@ -21,6 +21,7 @@ public class WebConfig {
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:5173");
         config.addAllowedOrigin("https://www.sevosmartech.com");
+        config.addAllowedOrigin("https://*.sevosmartech.com");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.addExposedHeader("ETag");
