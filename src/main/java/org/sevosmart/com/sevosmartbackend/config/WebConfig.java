@@ -20,7 +20,7 @@ public class WebConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:5173");
-        config.addAllowedOrigin("http://anotherdomain.com");
+        config.addAllowedOrigin("https://www.sevosmartech.com");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.addExposedHeader("ETag");
