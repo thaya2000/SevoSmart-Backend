@@ -44,7 +44,7 @@ public class GuestServiceImpl implements GuestService{
         }
 
         savedPerson = guestRepository.findById(savedPerson.getGuestId()).orElse(null);
-//        notificationService.sendConsultationNotification(savedPerson);
+        notificationService.sendConsultationNotification(savedPerson);
         assert savedPerson != null;
         return savedPerson.getGuestId();
     }
