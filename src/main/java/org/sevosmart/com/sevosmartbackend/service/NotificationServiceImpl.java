@@ -5,7 +5,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.sevosmart.com.sevosmartbackend.exception.EmailSendingException;
-import org.sevosmart.com.sevosmartbackend.model.Guest;
+import org.sevosmart.com.sevosmartbackend.model.Consultation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -37,19 +37,19 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Async
-    public void sendConsultationNotification(Guest guest) {
+    public void sendConsultationNotification(Consultation consultation) {
         try {
 
             MimeMessage message = getMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, UTF_8_ENCODING);
             helper.setPriority(1);
             helper.setSubject("Consultation With Client");
-            helper.setFrom("SEVO <" + fromEmail + ">");
+            helper.setFrom("SEVO SMART <" + fromEmail + ">");
             helper.setTo("thevarasathayanan@gmail.com");
-            helper.setText(getEmailMessage(guest), false);
+            helper.setText(getEmailMessage(consultation), false);
 
-            if (guest.getAttachmentIds() != null && !guest.getAttachmentIds().isEmpty()) {
-                for (String attachmentId : guest.getAttachmentIds()) {
+            if (consultation.getAttachmentIds() != null && !consultation.getAttachmentIds().isEmpty()) {
+                for (String attachmentId : consultation.getAttachmentIds()) {
                     System.out.println("Processing attachmentId: " + attachmentId);
 
                     // Construct the query and get the GridFSFile

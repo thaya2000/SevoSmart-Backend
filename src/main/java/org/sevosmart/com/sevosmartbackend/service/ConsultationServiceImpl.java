@@ -1,7 +1,7 @@
 package org.sevosmart.com.sevosmartbackend.service;
 
 import lombok.RequiredArgsConstructor;
-import org.sevosmart.com.sevosmartbackend.model.Guest;
+import org.sevosmart.com.sevosmartbackend.model.Consultation;
 import org.sevosmart.com.sevosmartbackend.repository.GuestRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +16,9 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class GuestServiceImpl implements GuestService{
+public class ConsultationServiceImpl implements ConsultationService {
 
-    private static final Logger logger = LoggerFactory.getLogger(GuestServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConsultationServiceImpl.class);
 
     private final GuestRepository guestRepository;
 
@@ -30,8 +30,8 @@ public class GuestServiceImpl implements GuestService{
     private long MAX_TOTAL_ATTACHMENT_SIZE;
 
     @Override
-    public String saveGuestDetails(Guest guest, List<MultipartFile> attachments) {
-        Guest savedPerson = guestRepository.save(guest);
+    public String saveConsultationDetails(Consultation consultation, List<MultipartFile> attachments) {
+        Consultation savedPerson = guestRepository.save(consultation);
 
         long attachmentTotalSize = calculateTotalSize(attachments);
 
@@ -40,7 +40,7 @@ public class GuestServiceImpl implements GuestService{
         }
 
         if (attachmentTotalSize > 0) {
-            saveAttachments(guest, attachments);
+            saveAttachments(consultation, attachments);
         }
 
         savedPerson = guestRepository.findById(savedPerson.getGuestId()).orElse(null);
@@ -52,7 +52,7 @@ public class GuestServiceImpl implements GuestService{
     private static final List<String> ALLOWED_IMAGE_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif");
     private static final List<String> ALLOWED_TEXT_EXTENSIONS = Arrays.asList("txt", "pdf", "doc", "docx");
 
-    private void saveAttachments(Guest guest, List<MultipartFile> attachments) {
+    private void saveAttachments(Consultation consultation, List<MultipartFile> attachments) {
         for (MultipartFile file : attachments) {
             try {
                 // Get the file extension
@@ -66,17 +66,17 @@ public class GuestServiceImpl implements GuestService{
                             || ALLOWED_TEXT_EXTENSIONS.contains(fileExtension)) {
                         String fileId = gridFsTemplate
                                 .store(file.getInputStream(), originalFilename, file.getContentType()).toString();
-                        guest.addAttachmentId(fileId);
+                        consultation.addAttachmentId(fileId);
                     } else {
                         // Handle the case where the file type is not allowed
                         throw new IllegalArgumentException("Invalid file type. Only image and text files are allowed.");
                     }
                 }
             } catch (IOException e) {
-                logger.error("An error occurred while saving attachments for guest: {}", guest.getGuestId(), e);
+                logger.error("An error occurred while saving attachments for guest: {}", consultation.getGuestId(), e);
             }
         }
-        guestRepository.save(guest);
+        guestRepository.save(consultation);
     }
 
     private long calculateTotalSize(List<MultipartFile> attachments) {
