@@ -202,6 +202,23 @@ public class AuthenticationService {
         }
     }
 
+    public String updateUserPassword(String id, String oldPassword, String newPassword) {
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                return "Old password is incorrect";
+            }
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            return "Password updated successfully";
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while updating the password for user with id: " + id, e);
+        }
+    }
+
+
+
     public String deleteUser(String id) {
         try {
             userRepository.deleteById(id);

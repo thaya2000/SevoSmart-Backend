@@ -2,6 +2,7 @@ package org.sevosmart.com.sevosmartbackend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.sevosmart.com.sevosmartbackend.dto.request.AuthenticationRequest;
+import org.sevosmart.com.sevosmartbackend.dto.request.PasswordUpdateRequest;
 import org.sevosmart.com.sevosmartbackend.dto.request.RegisterRequest;
 import org.sevosmart.com.sevosmartbackend.dto.response.AuthenticationResponse;
 import org.sevosmart.com.sevosmartbackend.model.User;
@@ -59,6 +60,16 @@ public class AuthenticationController {
         try {
             User updatedUser = authenticationService.updateUser(id, userUpdates);
             return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/users/password/{id}")
+    public ResponseEntity<String> updateUserPassword(@PathVariable String id, @RequestBody PasswordUpdateRequest request) {
+        try {
+            String message = authenticationService.updateUserPassword(id, request.getOldPassword(), request.getNewPassword());
+            return ResponseEntity.ok(message);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
