@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -24,8 +25,9 @@ public class AdminController {
     }
 
     @GetMapping("/allProduct")
-    public ResponseEntity<?> getAllProduct() {
-        return ResponseEntity.ok(productService.getAllProduct());
+    public ResponseEntity<List<Product>> getAllProduct() {
+        List<Product> products = productService.getAllProduct();
+        return ResponseEntity.ok().body(products);
     }
 
     @GetMapping("/productImage/{productId}")
