@@ -1,15 +1,20 @@
 package org.sevosmart.com.sevosmartbackend.service;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.sevosmart.com.sevosmartbackend.dto.request.AuthenticationRequest;
 import org.sevosmart.com.sevosmartbackend.dto.request.RegisterRequest;
 import org.sevosmart.com.sevosmartbackend.dto.response.AuthenticationResponse;
+import org.sevosmart.com.sevosmartbackend.dto.response.UserInfoResponse;
 import org.sevosmart.com.sevosmartbackend.enums.Role;
+import org.sevosmart.com.sevosmartbackend.enums.TokenType;
+import org.sevosmart.com.sevosmartbackend.exception.BadRequestException;
 import org.sevosmart.com.sevosmartbackend.model.Admin;
 import org.sevosmart.com.sevosmartbackend.model.Customer;
+import org.sevosmart.com.sevosmartbackend.model.Token;
 import org.sevosmart.com.sevosmartbackend.model.User;
-import org.sevosmart.com.sevosmartbackend.repository.AdminRepository;
-import org.sevosmart.com.sevosmartbackend.repository.CustomerRepository;
+import org.sevosmart.com.sevosmartbackend.repository.TokenRepository;
 import org.sevosmart.com.sevosmartbackend.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,86 +27,38 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
+
     private final UserRepository userRepository;
-    private final AdminRepository adminRepository;
-    private final CustomerRepository customerRepository;
+    private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        Optional<User> existingUserOptional = userRepository.findByEmail(request.getEmail());
-        if (existingUserOptional.isPresent()) {
-            return AuthenticationResponse.builder()
-                    .message("Email already exists")
-                    .build();
-        }
+        userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
+        });
 
-        User user;
-        switch (request.getRole()) {
-            case USER:
-                user = createUser(request);
-                userRepository.save(user);
-                break;
-            case ADMIN:
-                user = createAdmin(request);
-                adminRepository.save((Admin) user);
-                break;
-            case CUSTOMER:
-                user = createCustomer(request);
-                customerRepository.save((Customer) user);
-                break;
-            default:
-                return AuthenticationResponse.builder()
-                        .message("Unknown role")
-                        .build();
-        }
+        User user = createUserByRole(request);
+        userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        saveUserToken(user, jwtToken);
+
         return AuthenticationResponse.builder()
-                .user(user)
-                .token(jwtToken)
-                .build();
-    }
-
-    private User createUser(RegisterRequest request) {
-        return User.builder()
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
-                .build();
-    }
-
-    private Admin createAdmin(RegisterRequest request) {
-        return Admin.adminBuilder()
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
-                .build();
-    }
-
-    private Customer createCustomer(RegisterRequest request) {
-        return Customer.customerBuilder()
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         if (request.getEmail().isEmpty()) {
-            return AuthenticationResponse.builder()
-                    .message("Email is required")
-                    .build();
+            throw new BadRequestException("Email is required");
         }
 
         authenticationManager.authenticate(
@@ -110,21 +67,81 @@ public class AuthenticationService {
                         request.getPassword()));
 
         var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+
+        String jwtToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        revokeAllUserTokens(user);
+        saveUserToken(user, jwtToken);
+
         return AuthenticationResponse.builder()
-                .user(user)
-                .token(jwtToken)
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 
-    public ResponseEntity<?> authCheck(String authorizationHeader) {
+    private void saveUserToken(User user, String jwtToken) {
+        var token = Token.builder()
+                .user(user)
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .expired(false)
+                .revoked(false)
+                .build();
+        tokenRepository.save(token);
+    }
+
+    private void revokeAllUserTokens(User user) {
+        var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+        if (!validUserTokens.isEmpty()) {
+            validUserTokens.forEach(token -> {
+                token.setExpired(true);
+                token.setRevoked(true);
+            });
+            tokenRepository.saveAll(validUserTokens);
+        }
+    }
+
+    public ResponseEntity<?> refreshToken(String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Authorization header is missing or does not start with Bearer");
         }
 
-        String token = authorizationHeader.substring(7); // Remove "Bearer " prefix
+        final String refreshToken = authorizationHeader.substring(7);
+        final String userEmail = jwtService.extractUsername(refreshToken);
+
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid refresh token");
+        }
+
+        var user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        if (!jwtService.isTokenValid(refreshToken, user)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid or expired refresh token");
+        }
+
+        var accessToken = jwtService.generateToken(user);
+        revokeAllUserTokens(user);
+        saveUserToken(user, accessToken);
+
+        var authResponse = AuthenticationResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+        return ResponseEntity.ok(authResponse);
+    }
+
+    public ResponseEntity<?> getUserInfo(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Authorization header is missing or does not start with Bearer");
+        }
+
+        String token = authorizationHeader.substring(7);
         try {
             String userEmail = jwtService.extractUsername(token);
             if (userEmail == null || userEmail.isEmpty()) {
@@ -135,51 +152,92 @@ public class AuthenticationService {
             var user = userRepository.findByEmail(userEmail)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-            if (jwtService.isTokenValid(token, user)) {
-                return ResponseEntity.ok().build();
-            } else {
+            if (!jwtService.isTokenValid(token, user)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Token is expired or invalid");
+                        .body("Invalid or expired token");
             }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred processing your request");
-        }
-    }
 
-    public ResponseEntity<?> adminCheck(String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return ResponseEntity.ok(UserInfoResponse.builder()
+                    .userId(user.getId())
+                    .firstName(user.getFirstname())
+                    .lastName(user.getLastname())
+                    .build());
+
+        } catch (ExpiredJwtException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Authorization header is missing or does not start with Bearer");
-        }
-
-        String token = authorizationHeader.substring(7); // Remove "Bearer " prefix
-        try {
-            String userEmail = jwtService.extractUsername(token);
-            if (userEmail == null || userEmail.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("User not signed in");
-            }
-
-            var user = userRepository.findByEmail(userEmail)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-            if (user.getRole() != Role.ADMIN) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("Access denied: User does not have admin privileges");
-            }
-
-            if (jwtService.isTokenValid(token, user)) {
-                return ResponseEntity.ok().build();
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Token is expired or invalid");
-            }
+                    .body("JWT token is expired");
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("JWT token is invalid");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred processing your request");
         }
     }
+
+
+//    public ResponseEntity<String> authCheck(String authorizationHeader) {
+//        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body("Authorization header is missing or does not start with Bearer");
+//        }
+//
+//        String token = authorizationHeader.substring(7);
+//        try {
+//            String userEmail = jwtService.extractUsername(token);
+//            if (userEmail == null || userEmail.isEmpty()) {
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                        .body("User not signed in");
+//            }
+//
+//            var user = userRepository.findByEmail(userEmail)
+//                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+//
+//            if (jwtService.isTokenValid(token, user)) {
+//                return ResponseEntity.ok().build();
+//            } else {
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                        .body("Token is expired or invalid");
+//            }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("An error occurred processing your request");
+//        }
+//    }
+
+//    public ResponseEntity<String> adminCheck(String authorizationHeader) {
+//        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body("Authorization header is missing or does not start with Bearer");
+//        }
+//
+//        String token = authorizationHeader.substring(7);
+//        try {
+//            String userEmail = jwtService.extractUsername(token);
+//            if (userEmail == null || userEmail.isEmpty()) {
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                        .body("User not signed in");
+//            }
+//
+//            var user = userRepository.findByEmail(userEmail)
+//                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+//
+//            if (user.getRole() != Role.ADMIN) {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                        .body("Access denied: User does not have admin privileges");
+//            }
+//
+//            if (jwtService.isTokenValid(token, user)) {
+//                return ResponseEntity.ok().build();
+//            } else {
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                        .body("Token is expired or invalid");
+//            }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("An error occurred processing your request");
+//        }
+//    }
 
     public Optional<User> getUserById(String id) {
         try {
@@ -217,8 +275,6 @@ public class AuthenticationService {
         }
     }
 
-
-
     public String deleteUser(String id) {
         try {
             userRepository.deleteById(id);
@@ -236,4 +292,46 @@ public class AuthenticationService {
         }
     }
 
+    private User createUserByRole(RegisterRequest request) {
+        switch (request.getRole()) {
+            case GUEST:
+                return createUser(request);
+            case ADMIN:
+                return createAdmin(request);
+            case CUSTOMER:
+                return createCustomer(request);
+            default:
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown role");
+        }
+    }
+
+    private User createUser(RegisterRequest request) {
+        return User.builder()
+                .firstname(request.getFirstname())
+                .lastname(request.getLastname())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
+                .build();
+    }
+
+    private Admin createAdmin(RegisterRequest request) {
+        return Admin.adminBuilder()
+                .firstname(request.getFirstname())
+                .lastname(request.getLastname())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
+                .build();
+    }
+
+    private Customer createCustomer(RegisterRequest request) {
+        return Customer.customerBuilder()
+                .firstname(request.getFirstname())
+                .lastname(request.getLastname())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
+                .build();
+    }
 }

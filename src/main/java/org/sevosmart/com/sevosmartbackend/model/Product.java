@@ -24,7 +24,8 @@ public class Product {
     private Double discount;
     private String brand;
     private String category;
-    private byte[] productImage;
+    private String productImageURL;
+//    private byte[] productImage;
 
     @JsonIgnore
     @DBRef

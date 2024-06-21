@@ -7,10 +7,10 @@ spring:
       max-file-size: 5MB
       max-request-size: 15MB
 
-  # data:
-  #    mongodb:
-  #      database: sevo11
-  #      uri: mongodb://localhost:27017
+#    data:
+#      mongodb:
+#        database: sevo11
+#        uri: mongodb://localhost:27017
 
 
   data:
@@ -57,6 +57,15 @@ max:
 logging:
   level:
     web: DEBUG
+
+application:
+  security:
+    jwt:
+      secret-key: 07b00fdea3d12b71605643adc44ea840cfb343e122bc1452d29a8f4ccb65a1ad
+      access-token:
+        expiration: 604800000
+      refresh-token:
+        expiration: 1209600000
 
 
 

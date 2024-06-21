@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -25,22 +24,21 @@ public class AdminController {
     }
 
     @GetMapping("/allProduct")
-    public ResponseEntity<List<Product>> getAllProduct() {
-        List<Product> products = productService.getAllProduct();
-        return ResponseEntity.ok().body(products);
+    public ResponseEntity<?> getAllProduct(@RequestHeader("Authorization") String authorizationHeader) {
+        return productService.getAllProduct(authorizationHeader);   
     }
 
-    @GetMapping("/productImage/{productId}")
-    public ResponseEntity<byte[]> getProductImage(@PathVariable String productId) {
-        byte[] image = productService.getProductImage(productId);
-        if (image != null) {
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG)
-                    .body(image);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
+//    @GetMapping("/productImage/{productId}")
+//    public ResponseEntity<byte[]> getProductImage(@PathVariable String productId) {
+//        String image = productService.getProductImage(productId);
+//        if (image != null) {
+//            return ResponseEntity.ok()
+//                    .contentType(MediaType.IMAGE_JPEG)
+//                    .body(image);
+//        } else {
+//            return ResponseEntity.notFound().build();
+//        }
+//    }
 
     @DeleteMapping("/deleteProduct/{productId}")
     public ResponseEntity<String> deleteProduct(@PathVariable String productId) {

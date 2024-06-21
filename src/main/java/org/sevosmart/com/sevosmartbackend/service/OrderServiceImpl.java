@@ -86,7 +86,8 @@ public class OrderServiceImpl implements OrderService {
                 DetailOrderResponse.ProductDetail productDetail = new DetailOrderResponse.ProductDetail();
                 productDetail.setProductName(cartItem.getProduct().getProductName());
                 productDetail.setProductQuantity(cartItem.getQuantity());
-                productDetail.setProductImage(cartItem.getProduct().getProductImage());
+//                productDetail.setProductImage(cartItem.getProduct().getProductImage());
+                productDetail.setProductImageUrl(cartItem.getProduct().getProductImageURL());
                 productDetails.add(productDetail);
             }
             detailOrderResponse.setProducts(productDetails);
@@ -128,7 +129,8 @@ public class OrderServiceImpl implements OrderService {
                 DetailOrderResponse.ProductDetail productDetail = new DetailOrderResponse.ProductDetail();
                 productDetail.setProductName(cartItem.getProduct().getProductName());
                 productDetail.setProductQuantity(cartItem.getQuantity());
-                productDetail.setProductImage(cartItem.getProduct().getProductImage());
+//                productDetail.setProductImage(cartItem.getProduct().getProductImage());
+                productDetail.setProductImageUrl(cartItem.getProduct().getProductImageURL());
                 productDetails.add(productDetail);
             }
             detailOrderResponse.setProducts(productDetails);

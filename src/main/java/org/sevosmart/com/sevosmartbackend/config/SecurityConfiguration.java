@@ -28,12 +28,12 @@ public class SecurityConfiguration {
                         .requestMatchers("/bill/**").permitAll()
                         .requestMatchers("/api/v1/admin/**").permitAll()
                         .requestMatchers("/api/v1/user/**").permitAll()
+                        .requestMatchers("/image/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider( authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 }

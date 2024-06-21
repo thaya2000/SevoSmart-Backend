@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -32,17 +33,31 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.authenticate(request));
     }
 
-    @GetMapping("/auth-check")
-    public ResponseEntity<?> authCheck(@RequestHeader("Authorization") String authorizationHeader) {
-        System.out.println("Authorization Header: " + authorizationHeader);
-        return authenticationService.authCheck(authorizationHeader);
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(
+            @RequestHeader("Authorization") String authorizationHeader
+    ) throws IOException {
+        return authenticationService.refreshToken(authorizationHeader);
     }
 
-    @GetMapping("/admin-check")
-    public ResponseEntity<?> adminCheck(@RequestHeader("Authorization") String authorizationHeader) {
-        System.out.println("Authorization Header: " + authorizationHeader);
-        return authenticationService.adminCheck(authorizationHeader);
+    @PostMapping("/user-info")
+    public ResponseEntity<?> getUserInfo(@RequestHeader("Authorization") String authorizationHeader) throws IOException {
+        return authenticationService.getUserInfo(authorizationHeader);
     }
+
+//    @GetMapping("/auth-check")
+//    public ResponseEntity<?> authCheck(@RequestHeader("Authorization") String authorizationHeader) {
+//        System.out.println("Authorization Header: " + authorizationHeader);
+//        return authenticationService.authCheck(authorizationHeader);
+//    }
+//
+//    @GetMapping("/admin-check")
+//    public ResponseEntity<?> adminCheck(@RequestHeader("Authorization") String authorizationHeader) {
+//        System.out.println("Authorization Header: " + authorizationHeader);
+//        return authenticationService.adminCheck(authorizationHeader);
+//    }
+
 
     @GetMapping("/users/{id}")
     public ResponseEntity<?> getUserById(@PathVariable String id) {

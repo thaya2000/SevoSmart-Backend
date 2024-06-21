@@ -30,6 +30,6 @@ public class DetailOrderResponse {
     public static class ProductDetail {
         private String productName;
         private int productQuantity;
-        private byte[] productImage;
+        private String productImageUrl;
     }
 }
