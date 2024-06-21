@@ -6,10 +6,14 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,20 +21,32 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.UUID;
 
 @Service
 public class ImageService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ImageService.class);
+
+    @Value("${FIREBASE_PRIVATE_KEY:#{null}}")
+    private String firebasePrivateKey;
+
     private Storage storage;
 
     @PostConstruct
     public void init() throws IOException {
-        InputStream inputStream = ImageService.class.getClassLoader().getResourceAsStream("firebase-private-key.json");
-        Credentials credentials = GoogleCredentials.fromStream(inputStream);
-        storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
+        if (firebasePrivateKey == null) {
+            throw new IllegalStateException("Firebase private key environment variable not set");
+        }
+
+        logger.info("Firebase private key environment variable is set.");
+
+        byte[] decodedKey = Base64.getDecoder().decode(firebasePrivateKey);
+        try (InputStream inputStream = new ByteArrayInputStream(decodedKey)) {
+            Credentials credentials = GoogleCredentials.fromStream(inputStream);
+            storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
+        }
     }
 
     private String uploadFile(File file, String fileName) throws IOException {
@@ -68,7 +84,6 @@ public class ImageService {
         }
     }
 
-
     public void delete(String fileUrl) {
         String fileName = extractFileName(fileUrl);
         BlobId blobId = BlobId.of("sevosmart-8ba91.appspot.com", fileName);
@@ -85,6 +100,4 @@ public class ImageService {
         String filePart = parts[parts.length - 1];
         return filePart.split("\\?")[0];
     }
-
-
 }
