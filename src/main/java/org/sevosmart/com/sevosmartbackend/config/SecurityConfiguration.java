@@ -29,6 +29,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/admin/**").permitAll()
                         .requestMatchers("/api/v1/user/**").permitAll()
                         .requestMatchers("/image/**").permitAll()
+                        .requestMatchers("/api/payment/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

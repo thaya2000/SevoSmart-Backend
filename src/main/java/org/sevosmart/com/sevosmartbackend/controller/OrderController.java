@@ -3,7 +3,6 @@ package org.sevosmart.com.sevosmartbackend.controller;
 import lombok.RequiredArgsConstructor;
 
 import org.sevosmart.com.sevosmartbackend.dto.request.OrderDetailRequest;
-import org.sevosmart.com.sevosmartbackend.dto.response.DetailOrderResponse;
 import org.sevosmart.com.sevosmartbackend.dto.response.OrderResponse;
 import org.sevosmart.com.sevosmartbackend.model.Order;
 import org.sevosmart.com.sevosmartbackend.service.OrderService;

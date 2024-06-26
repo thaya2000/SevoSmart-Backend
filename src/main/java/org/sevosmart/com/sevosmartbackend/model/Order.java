@@ -21,9 +21,11 @@ import java.util.List;
 public class Order {
     @Id
     private String orderId;
+
     @JsonIgnore
     @DBRef
     private Customer customer;
+
     private LocalDate orderDate;
     private String addressLineOne;
     private String addressLineTwo;
@@ -31,9 +33,11 @@ public class Order {
     private String district;
     private String phoneNo;
     private OrderStatus orderStatus;
+
     @JsonIgnore
     @DBRef
     private List<CartItems> orderItems;
+
     private double shippingCost;
     private double totalPrice;
 }

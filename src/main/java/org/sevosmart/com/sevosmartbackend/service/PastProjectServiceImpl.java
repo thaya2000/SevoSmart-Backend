@@ -17,6 +17,8 @@ public class PastProjectServiceImpl implements PastProjectService {
 
     private final PastProjectRepository pastProjectRepository;
 
+    private final ImageService imageService;
+
     @Override
     public List<PastProjects> getAllPastProjects() {
         return pastProjectRepository.findAll();
@@ -30,11 +32,14 @@ public class PastProjectServiceImpl implements PastProjectService {
     @Override
     public String savePastProject(List<MultipartFile> file, PastProjects pastProjects) {
         try {
-            List<byte[]> images = new ArrayList<>();
+//          List<byte[]> images = new ArrayList<>();
+            List<String> imageUrls = new ArrayList<>();
             for (MultipartFile multipartFile : file) {
-                images.add(multipartFile.getBytes());
+                imageUrls.add(imageService.upload(multipartFile));
+//                images.add(multipartFile.getBytes());
             }
-            pastProjects.setProjectImages(images);
+//          pastProjects.setProjectImages(images);
+            pastProjects.setProductImageURL(imageUrls);
             pastProjectRepository.save(pastProjects);
             return "Project saved successfully";
         } catch (Exception e) {
@@ -52,11 +57,14 @@ public class PastProjectServiceImpl implements PastProjectService {
                 existingProject.setProjectName(updatedPastProjects.getProjectName());
                 existingProject.setDescription(updatedPastProjects.getDescription());
                 if (file != null) {
-                    List<byte[]> images = new ArrayList<>();
+//                  List<byte[]> images = new ArrayList<>();
+                    List<String> imageUrls = new ArrayList<>();
                     for (MultipartFile multipartFile : file) {
-                        images.add(multipartFile.getBytes());
+//                      images.add(multipartFile.getBytes());
+                        imageUrls.add(imageService.upload(multipartFile));
                     }
-                    existingProject.setProjectImages(images);
+//                  existingProject.setProjectImages(images);
+                    existingProject.setProductImageURL(imageUrls);
                 }
                 pastProjectRepository.save(existingProject);
                 return "Project updated successfully";
