@@ -76,14 +76,25 @@ public class CartItemServiceImpl implements CartItemService {
 
     @Override
     public String removeProductFromCartById(String productId, String customerId) {
-        Optional<CartItems> cartItemOptional = Optional
-                .ofNullable(cartItemRepository.findByProductIdAndCustomerId(productId, customerId));
+        Optional<User> userOptional = userRepository.findById(customerId);
         Product product = productRepository.findById(productId).orElse(null);
-        if (cartItemOptional.isPresent()) {
-            CartItems cartItem = cartItemOptional.get();
+        if (userOptional.isEmpty())
+            return "Customer not found";
+        if (!(userOptional.get() instanceof Customer customer))
+            return "User is not a Customer";
+        if (product == null)
+            return "Product not found";
+
+        List<CartItems> cartItems = customer.getCartItems();
+        Optional<CartItems> existingCartItemOptional = cartItems.stream()
+                .filter(c -> Objects.equals(c.getProduct().getId(), productId))
+                .findFirst();
+
+        if (existingCartItemOptional.isPresent()) {
+            CartItems cartItem = existingCartItemOptional.get();
             if (cartItem.getQuantity() > 1) {
                 cartItem.setQuantity(cartItem.getQuantity() - 1);
-                Optional.ofNullable(product)
+                Optional.of(product)
                         .ifPresent(p -> {
                             p.setQuantity(p.getQuantity() + 1);
                             productRepository.save(p);
@@ -91,7 +102,7 @@ public class CartItemServiceImpl implements CartItemService {
                 cartItemRepository.save(cartItem);
                 return "Product quantity reduced successfully";
             } else {
-                deleteProductFromCartById(productId, customerId);
+                cartItemRepository.delete(cartItem);
                 return "Product removed successfully";
             }
         }
@@ -122,24 +133,31 @@ public class CartItemServiceImpl implements CartItemService {
 
     @Override
     public String deleteProductFromCartById(String productId, String customerId) {
-        Optional<Customer> customerOptional = customerRepository.findById(customerId);
+        Optional<User> userOptional = userRepository.findById(customerId);
         Product product = productRepository.findById(productId).orElse(null);
-        if (customerOptional.isPresent()) {
-            Customer customer = customerOptional.get();
-            boolean isCartAvailable = customer.getCartItems().stream()
-                    .anyMatch(cartItem -> cartItem.getProduct().getId().equals(productId));
-            if(isCartAvailable) {
-                customer.getCartItems().removeIf(cartItem -> cartItem.getProduct().getId().equals(productId));
-                CartItems cartItems = cartItemRepository.findByProductIdAndCustomerId(productId, customerId);
-                Optional.ofNullable(product)
+        if (userOptional.isEmpty())
+            return "Customer not found";
+        if (!(userOptional.get() instanceof Customer customer))
+            return "User is not a Customer";
+        if (product == null)
+            return "Product not found";
+
+        List<CartItems> cartItems = customer.getCartItems();
+        Optional<CartItems> existingCartItemOptional = cartItems.stream()
+                .filter(c -> Objects.equals(c.getProduct().getId(), productId))
+                .findFirst();
+
+        if (existingCartItemOptional.isPresent()) {
+            CartItems cartItem = existingCartItemOptional.get();
+            if (cartItem.getQuantity() > 0) {
+                Optional.of(product)
                         .ifPresent(p -> {
-                            p.setQuantity(p.getQuantity() + cartItems.getQuantity());
+                            p.setQuantity(p.getQuantity() + cartItem.getQuantity());
                             productRepository.save(p);
                         });
-                customerRepository.save(customer);
-                cartItemRepository.deleteByProductIdAndCustomerId(productId, customerId);
-                return "Product deleted from cart";
-            }else  return "Record not found customer cart";
+                cartItemRepository.delete(cartItem);
+                return "Product Deleted successfully";
+            }
         }
         return "Record not found";
     }
