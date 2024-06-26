@@ -19,7 +19,7 @@ public class PastProjects {
     @Id
     private String projectId;
     private String projectName;
-    private List<byte[]> projectImages;
+//    private List<byte[]> projectImages;
     private List<String> productImageURL;
     private String description;
 }
