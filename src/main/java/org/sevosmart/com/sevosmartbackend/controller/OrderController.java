@@ -25,6 +25,15 @@ public class OrderController {
         return new ResponseEntity<>(orderService.placeOrder(customerId, orderDetailRequest), HttpStatus.CREATED);
     }
 
+    @PostMapping("/order/placeOrder/{customerId}")
+    public ResponseEntity<String> placeOrderByOrderId(
+            @RequestParam List<String> cartIds,
+            @PathVariable String customerId,
+            @RequestBody OrderDetailRequest orderDetailRequest) {
+        return new ResponseEntity<>(orderService.placeOrderByCartId(cartIds, customerId, orderDetailRequest), HttpStatus.CREATED);
+    }
+
+
     @GetMapping("/order/{orderId}")
     public ResponseEntity<?> getOrder(@PathVariable String orderId) {
         try {

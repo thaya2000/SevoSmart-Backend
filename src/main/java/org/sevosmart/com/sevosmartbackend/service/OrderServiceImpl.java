@@ -31,7 +31,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public String placeOrder(String customerId, OrderDetailRequest orderDetailRequest) {
-
         Optional<User> userOptional = userRepository.findById(customerId);
 
         if (userOptional.isEmpty())
@@ -61,7 +60,52 @@ public class OrderServiceImpl implements OrderService {
 
         customer.setCartItems(null);
         userRepository.save(customer);
+        return "Order placed successfully";
+    }
 
+    @Override
+    public String placeOrderByCartId(List<String> cartIds, String customerId, OrderDetailRequest orderDetailRequest) {
+        Optional<User> userOptional = userRepository.findById(customerId);
+        if (userOptional.isEmpty())
+            return "Customer not found";
+        if (!(userOptional.get() instanceof Customer customer))
+            return "User is not a Customer";
+
+        System.out.println("Let Print the cart Items");
+        System.out.println(cartIds);
+        List<CartItems> customerCartItems = cartItemRepository.findAllById(cartIds);
+        System.out.println("Let Print the cart Items");
+        System.out.println(customerCartItems.size());
+
+
+        if (customerCartItems.isEmpty())
+            return "No valid cart items found";
+//        else
+//            return "Cart items found";
+//            return customerCartItems.toString();
+//            System.out.println(customerCartItems);
+
+
+        Order order = new Order();
+        order.setCustomer(customer);
+        order.setOrderDate(LocalDate.now());
+        order.setAddressLineOne(orderDetailRequest.getAddressLineOne());
+        order.setAddressLineTwo(orderDetailRequest.getAddressLineTwo());
+        order.setCity(orderDetailRequest.getCity());
+        order.setDistrict(orderDetailRequest.getDistrict());
+        order.setPhoneNo(orderDetailRequest.getPhoneNo());
+        order.setOrderStatus(OrderStatus.PLACED);
+        order.setOrderItems(customerCartItems);
+        order.setShippingCost(1000.00);
+        order.setTotalPrice(
+                customerCartItems.stream().mapToDouble(c -> c.getProduct().getPrice() * c.getQuantity()).sum()
+                        + order.getShippingCost());
+        orderRepository.save(order);
+
+        customer.getCartItems().removeAll(customerCartItems);
+        userRepository.save(customer);
+
+        cartItemRepository.deleteAll(customerCartItems);
         return "Order placed successfully";
     }
 

@@ -10,6 +10,8 @@ import org.sevosmart.com.sevosmartbackend.model.Order;
 public interface OrderService {
     String placeOrder(String customerId, OrderDetailRequest orderDetailRequest);
 
+    String placeOrderByCartId(List<String> cartIds, String customerId, OrderDetailRequest orderDetailRequest);
+
     DetailOrderResponse getOrderDetails(String orderId);
 
     List<Order> getOrdersToDeliver();
