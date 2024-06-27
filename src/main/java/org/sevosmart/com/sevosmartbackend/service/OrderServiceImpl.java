@@ -105,7 +105,6 @@ public class OrderServiceImpl implements OrderService {
         customer.getCartItems().removeAll(customerCartItems);
         userRepository.save(customer);
 
-        cartItemRepository.deleteAll(customerCartItems);
         return "Order placed successfully";
     }
 
