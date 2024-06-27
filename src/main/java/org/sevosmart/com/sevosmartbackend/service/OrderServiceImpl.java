@@ -80,11 +80,6 @@ public class OrderServiceImpl implements OrderService {
 
         if (customerCartItems.isEmpty())
             return "No valid cart items found";
-//        else
-//            return "Cart items found";
-//            return customerCartItems.toString();
-//            System.out.println(customerCartItems);
-
 
         Order order = new Order();
         order.setCustomer(customer);
