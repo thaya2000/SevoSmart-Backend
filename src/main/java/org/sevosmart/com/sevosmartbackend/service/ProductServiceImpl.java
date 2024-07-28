@@ -146,9 +146,12 @@ public class ProductServiceImpl implements ProductService{
         if (productOptional.isPresent()) {
             Product product = productOptional.get();
             updatedProduct.setId(productId);
-//            updatedProduct.setProductImage(productImage.getBytes());
             updatedProduct.setAdmin(product.getAdmin());
-            updatedProduct.setProductImageURL(imageService.edit(productImage, product.getProductImageURL()));
+            if (productImage != null && !productImage.isEmpty()) {
+                updatedProduct.setProductImageURL(imageService.edit(productImage, product.getProductImageURL()));
+            } else {
+                updatedProduct.setProductImageURL(product.getProductImageURL());
+            }
             productRepository.save(updatedProduct);
             return "Product Updated";
         } else {

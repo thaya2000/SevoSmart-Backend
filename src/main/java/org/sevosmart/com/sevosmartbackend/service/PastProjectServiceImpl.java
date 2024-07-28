@@ -56,16 +56,17 @@ public class PastProjectServiceImpl implements PastProjectService {
                 PastProjects existingProject = existingProjectOpt.get();
                 existingProject.setProjectName(updatedPastProjects.getProjectName());
                 existingProject.setDescription(updatedPastProjects.getDescription());
-                if (file != null) {
-//                  List<byte[]> images = new ArrayList<>();
+
+                if (file != null && !file.isEmpty() && !(file.size() == 1 && file.get(0).isEmpty())) {
                     List<String> imageUrls = new ArrayList<>();
                     for (MultipartFile multipartFile : file) {
-//                      images.add(multipartFile.getBytes());
                         imageUrls.add(imageService.upload(multipartFile));
                     }
-//                  existingProject.setProjectImages(images);
                     existingProject.setProductImageURL(imageUrls);
+                } else {
+                    existingProject.setProductImageURL(updatedPastProjects.getProductImageURL());
                 }
+
                 pastProjectRepository.save(existingProject);
                 return "Project updated successfully";
             } else {
@@ -73,8 +74,8 @@ public class PastProjectServiceImpl implements PastProjectService {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return "Failed to update project";
         }
-        return "Failed to update project";
     }
 
     @Override

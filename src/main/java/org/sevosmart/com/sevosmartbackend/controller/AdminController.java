@@ -51,8 +51,11 @@ public class AdminController {
     }
 
     @PutMapping(value = "/updateProduct/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateProduct(@ModelAttribute Product product, @RequestParam("productpic") MultipartFile productpic, @PathVariable String productId) throws IOException {
-        return new ResponseEntity<>(productService.updateProduct(productId, productpic, product), HttpStatus.CREATED);
+    public ResponseEntity<String> updateProduct(@ModelAttribute Product product,
+                                                @RequestParam(value = "productpic", required = false) MultipartFile productpic,
+                                                @PathVariable String productId) throws IOException {
+        String response = productService.updateProduct(productId, productpic, product);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PutMapping("/updatePrice/{id}")
